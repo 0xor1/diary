@@ -40,17 +40,59 @@ internal static class EntryEps
 
     private static async Task<SetRes<Entry>> Get(IRpcCtx ctx, DiaryDb db, ISession ses, Get req)
     {
-        throw new NotImplementedException();
+        var qry = db.Entries.Where(x => x.User == ses.Id);
+        if (req.CreatedOn?.Min != null)
+        {
+            qry.Where(x => x.CreatedOn >= req.CreatedOn.Min);
+        }
+        if (req.CreatedOn?.Max != null)
+        {
+            qry.Where(x => x.CreatedOn <= req.CreatedOn.Max);
+        }
+        if (req.After != null)
+        {
+            var after = await db.Entries.SingleOrDefaultAsync(
+                x => x.User == ses.Id && x.Id == req.After,
+                ctx.Ctkn
+            );
+            ctx.NotFoundIf(after == null, model: new { Name = "After" });
+            after.NotNull();
+            qry = req.Asc switch
+            {
+                true => qry.Where(x => x.CreatedOn > after.CreatedOn),
+                false => qry.Where(x => x.CreatedOn < after.CreatedOn),
+            };
+        }
+        qry = req.Asc switch
+        {
+            true => qry.OrderBy(x => x.CreatedOn),
+            false => qry.OrderByDescending(x => x.CreatedOn),
+        };
+        qry = qry.Take(101);
+        var res = await qry.ToListAsync(ctx.Ctkn);
+        return SetRes<Entry>.FromLimit(res.Select(x => x.ToApi()).ToList(), 101);
     }
 
     private static async Task<Entry> Update(IRpcCtx ctx, DiaryDb db, ISession ses, Update req)
     {
-        throw new NotImplementedException();
+        req.Title = ctx.Get<IHtmlSanitizer>().Sanitize(req.Title);
+        ctx.ErrorFromValidationResult(req.Title.Validate(nameof(req.Title), 1, 250));
+        req.Body = ctx.Get<IHtmlSanitizer>().Sanitize(req.Body);
+        var entry = await db.Entries.SingleOrDefaultAsync(
+            x => x.User == ses.Id && x.Id == req.Id,
+            ctx.Ctkn
+        );
+        ctx.NotFoundIf(entry == null, model: new { Name = "Entry" });
+        entry.NotNull();
+        entry.Title = req.Title;
+        entry.Body = req.Body;
+        return entry.ToApi();
     }
 
     private static async Task<Nothing> Delete(IRpcCtx ctx, DiaryDb db, ISession ses, Delete req)
     {
-        throw new NotImplementedException();
+        db.Entries.Where(x => x.User == ses.Id && x.Id == req.Id).ExecuteDeleteAsync(ctx.Ctkn);
+        return Nothing.Inst;
     }
 
     public static Task OnAuthActivation(IRpcCtx ctx, DiaryDb db, string id, string email) =>
