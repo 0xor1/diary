@@ -1,0 +1,60 @@
+sections:
+  - key: Entry
+    types:
+      - key: Entry
+        fields:
+          - key: User
+            type: string
+          - key: Id
+            type: string
+          - key: CreatedOn
+            type: DateTime
+          - key: Title
+            type: string
+          - key: Body
+            type: string
+      - key: Create
+        fields:
+          - key: Title
+            type: string
+          - key: Body
+            type: string
+      - key: Update
+        fields:
+          - key: Id
+            type: string
+          - key: Title
+            type: string
+          - key: Body
+            type: string
+      - key: Delete
+        fields:
+          - key: Id
+            type: string
+      - key: Get
+        fields:
+          - key: CreatedOn
+            type: MinMax<DateTime>?
+            default: "null"
+          - key: Containing
+            type: string?
+            default: "null"
+          - key: After
+            type: string?
+            default: "null"
+          - key: Asc
+            type: bool
+            default: "false"
+    eps:
+      - key: Create
+        arg: Create
+        res: Entry
+      - key: Get
+        arg: Get
+        res: SetRes<Entry>
+      - key: Update
+        arg: Update
+        res: Entry
+      - key: Delete
+        arg: Delete
+        res: Nothing

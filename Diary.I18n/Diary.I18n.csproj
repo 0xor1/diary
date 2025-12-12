@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="0xor1.Common.Shared" Version="6.0.8" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Fluid.Core" Version="2.31.0" />
+  </ItemGroup>
+  <Target Name="GenerateI18n" BeforeTargets="BeforeBuild">
+    <Exec Command="dotnet tool run dotnet-common-cli i18n &quot;$(MSBuildProjectDirectory)&quot; $(MSBuildProjectName)" />
+  </Target>
+</Project>
