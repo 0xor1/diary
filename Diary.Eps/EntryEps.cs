@@ -23,13 +23,16 @@ internal static class EntryEps
 
     private static async Task<Entry> Create(IRpcCtx ctx, DiaryDb db, ISession ses, Create req)
     {
+        req.Title = ctx.Get<IHtmlSanitizer>().Sanitize(req.Title);
+        ctx.ErrorFromValidationResult(req.Title.Validate(nameof(req.Title), 1, 250));
+        req.Body = ctx.Get<IHtmlSanitizer>().Sanitize(req.Body);
         var entry = new DbEntry
         {
             User = ses.Id,
             Id = Id.New(),
             CreatedOn = DateTimeExt.UtcNowMilli(),
-            Title = ctx.Get<IHtmlSanitizer>().Sanitize(req.Title),
-            Body = ctx.Get<IHtmlSanitizer>().Sanitize(req.Body),
+            Title = req.Title,
+            Body = req.Body,
         };
         await db.Entries.AddAsync(entry, ctx.Ctkn);
         return entry.ToApi();
