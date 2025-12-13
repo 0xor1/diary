@@ -91,7 +91,9 @@ internal static class EntryEps
 
     private static async Task<Nothing> Delete(IRpcCtx ctx, DiaryDb db, ISession ses, Delete req)
     {
-        await db.Entries.Where(x => x.User == ses.Id && x.Id == req.Id).ExecuteDeleteAsync(ctx.Ctkn);
+        await db
+            .Entries.Where(x => x.User == ses.Id && x.Id == req.Id)
+            .ExecuteDeleteAsync(ctx.Ctkn);
         return Nothing.Inst;
     }
 

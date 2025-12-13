@@ -73,5 +73,5 @@ app.ConfigureServices(services =>
 app.UseFilter<StateFilter>();
 app.Add<App>("app");
 app.Add<Auth>("auth");
-app.Add<Entry>("counter");
+app.Add<Entry>("entry");
 await app.RunAsync(args);
