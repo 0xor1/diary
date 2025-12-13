@@ -3,15 +3,6 @@
         <DemoBanner/>
         <RadzenLayout class="rz-shadow-3 grow-1">
                 <AppHeader @bind-LeftExpanded="_leftExpanded"/>
-                <RadzenSidebar @bind-Expanded="@_leftExpanded">
-                    <RadzenPanelMenu>
-                        <RadzenPanelMenuItem class="goto-home" Text="@L.S(S.Home)" Icon="home" Path="/" Click="CollapseIfNarrow"/>
-                        @if (_session.IsAuthed)
-                        {
-                            <RadzenPanelMenuItem class="goto-my-counter" Text="@L.S(S.Counter)" Icon="star" Path="@($"/{_session.Id}/counter")" Click="CollapseIfNarrow"/>
-                        }
-                    </RadzenPanelMenu>
-                </RadzenSidebar>
                 <RadzenBody class="root">
                     @if (_ready)
                     {

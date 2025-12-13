@@ -1,0 +1,131 @@
+@using Common.Client
+@using Common.Shared
+@using Common.Shared.Auth
+@using Diary.Api.Entry
+@using IApi = Diary.Api.IApi
+@using S = Diary.I18n.S
+
+<div class="root col p-0h g-0h jc-s ai-s">
+    <RadzenText class="m-t-0" TextStyle="TextStyle.H2">@L.S(S.Entries)</RadzenText>
+    <RadzenButton class="m-b-1" ButtonStyle="ButtonStyle.Success" Icon="add_circle_outline" Text="@L.S(S.New)" Click="@GoToNew"/>
+    <RadzenDataGrid
+        @ref="_grid"
+        Count="Count"
+        Data="Items"
+        TItem="Entry"
+        IsLoading="_isLoading"
+        EmptyText="@L.S(S.NoEntries)"
+        RowClick="RowClick"
+        FilterPopupRenderMode="PopupRenderMode.OnDemand" 
+        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+        AllowSorting="true" 
+        AllowFiltering="true"
+        AllowPaging="true"
+        LoadData="LoadData"
+        KeyProperty="Id"
+        class="row-clickable">
+        <Columns>
+            <RadzenDataGridColumn Sortable="true" Width="18em" TItem="Entry" Property="@nameof(Entry.CreatedOn)" Title="@L.S(S.Date)">
+                <Template Context="e">
+                    <div class="flx child-no-shrink jc-s ai-c g-0h w-100 mw-100p p-rel">
+                        <span class="shrink-1 ellip">@L.D(e.CreatedOn)</span>
+                        <div class="flx g-0q p-abs show-on-row-mouse-over" style="right: -1em;">
+                            <RadzenButton @onclick:stopPropagation="true" Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.ExtraSmall" Click="_ => Delete(e)"/>
+                        </div>
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Sortable="false" TItem="Entry" Property="@nameof(Entry.Title)" Title="@L.S(S.Title)" FilterValue="@Containing">
+                <Template Context="e">
+                    <span class="shrink-1 ellip">@e.Title</span>
+                </Template>
+                <FilterTemplate>
+                    <RadzenTextBox @bind-Value="@Containing" Style="width:100%"/>
+                </FilterTemplate>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</div>
+
+@inject L L;
+@inject IApi Api;
+@inject NavigationManager Nav;
+@inject DialogService DialogService;
+@code{
+    
+    private string? Containing { get; set; }
+    private MinMax<DateTime>? CreatedOn { get; set; }
+    private int Count => Items.Count; 
+    private List<Entry> Items { get; set; } = new ();
+    private bool _isLoading = false;
+    private RadzenDataGrid<Entry> _grid;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItems();
+    }
+
+    private async Task GoToNew()
+        => Nav.NavigateTo($"/entry/new");
+
+    private void RowClick(DataGridRowMouseEventArgs<Entry> e)
+    {
+        Nav.NavigateTo($"/entry/{e.Data.Id}");
+    }
+
+    private async Task LoadData(LoadDataArgs arg)
+    {
+            var asc = false;
+            if (arg.Sorts.Count() == 1)
+            {
+                var sort = arg.Sorts.Single();
+                asc = sort.SortOrder switch {
+                    null => false,
+                    SortOrder.Ascending => true,
+                    SortOrder.Descending => false
+                };
+            }
+
+            await LoadItems(asc: asc);
+    }
+
+    private async Task LoadItems(bool nextPage = false, bool asc = false)
+    {
+        _isLoading = true;
+        try
+        {
+            if (Containing.IsNullOrWhiteSpace())
+            {
+                Containing = null;
+            }
+
+            string? after = null;
+            if (nextPage)
+            {
+                after = Items.LastOrDefault()?.Id;
+            }
+            var res = await Api.Entry.Get(new(CreatedOn, Containing, after, asc));
+            if (after == null)
+            {
+                Items.Clear();
+            }
+
+            Items.AddRange(res.Set);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task Delete(Entry e)
+    {
+        var confirmed = await DialogService.Confirm(L.S(S.ConfirmDeleteEntry, e), L.S(S.Confirm), new ConfirmOptions() { OkButtonText = L.S(S.Delete), CancelButtonText = L.S(S.Cancel) });
+        if (confirmed == true)
+        {
+            await Api.Entry.Delete(new(e.Id));
+            Items.Remove(e);
+            await _grid.Reload();
+        }
+    }
+}

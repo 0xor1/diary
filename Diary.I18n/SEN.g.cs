@@ -11,14 +11,21 @@ public static partial class S
 {
     private static readonly Dictionary<string, TemplatableString> EN_Strings = new ()
     { 
-        { Counter, new("Counter") },
-        { Decrement, new("Decrement") },
-        { Decrementing, new("Decrementing") },
+        { Body, new("Body") },
+        { Cancel, new("Cancel") },
+        { Confirm, new("Confirm") },
+        { ConfirmDeleteEntry, new("Confirm Delete Entry") },
+        { Date, new("Date") },
+        { Delete, new("Delete") },
+        { Diary, new("Diary") },
+        { Entry, new("Entry") },
+        { Entries, new("Entries") },
         { Home, new("Home") },
-        { HomeBody, new("<p>Welcome to your new dotnet starter kit.</p><p>You will find:</p><ul><li>Client: a blazor wasm app using radzen ui library</li><li>Server: aspnet with rpc pattern api and entity framework db interface</li></ul>") },
+        { HomeBody, new("<p>Welcome to your new diary.</p>") },
         { HomeHeader, new("Hello, Diary!") },
-        { Increment, new("Increment") },
-        { Incrementing, new("Incrementing") },
-        { MyCounter, new("My Counter") },
+        { New, new("New") },
+        { NoEntries, new("No Entries") },
+        { Title, new("Title") },
+        { UpdateEntry, new("Update Entry") },
     };
 }
