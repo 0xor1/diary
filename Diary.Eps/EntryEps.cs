@@ -43,11 +43,11 @@ internal static class EntryEps
         var qry = db.Entries.Where(x => x.User == ses.Id);
         if (req.CreatedOn?.Min != null)
         {
-            qry.Where(x => x.CreatedOn >= req.CreatedOn.Min);
+            qry = qry.Where(x => x.CreatedOn >= req.CreatedOn.Min);
         }
         if (req.CreatedOn?.Max != null)
         {
-            qry.Where(x => x.CreatedOn <= req.CreatedOn.Max);
+            qry = qry.Where(x => x.CreatedOn <= req.CreatedOn.Max);
         }
         if (req.After != null)
         {
@@ -91,7 +91,7 @@ internal static class EntryEps
 
     private static async Task<Nothing> Delete(IRpcCtx ctx, DiaryDb db, ISession ses, Delete req)
     {
-        db.Entries.Where(x => x.User == ses.Id && x.Id == req.Id).ExecuteDeleteAsync(ctx.Ctkn);
+        await db.Entries.Where(x => x.User == ses.Id && x.Id == req.Id).ExecuteDeleteAsync(ctx.Ctkn);
         return Nothing.Inst;
     }
 
