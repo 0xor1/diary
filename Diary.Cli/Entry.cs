@@ -71,7 +71,7 @@ public class Entry
     /// <param name="body">-b, body</param>
     public async Task Delete(string id, string title, string body, CancellationToken ctkn = default)
     {
-        await _api.Entry.Delete(new Delete(id), ctkn);
+        await _api.Entry.Delete(new Exact(id), ctkn);
         Io.WriteSuccess();
     }
 }

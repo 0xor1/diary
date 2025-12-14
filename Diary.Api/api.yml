@@ -13,6 +13,7 @@ sections:
             type: string
           - key: Body
             type: string
+            default: '""'
       - key: Create
         fields:
           - key: Title
@@ -27,7 +28,7 @@ sections:
             type: string
           - key: Body
             type: string
-      - key: Delete
+      - key: Exact
         fields:
           - key: Id
             type: string
@@ -49,6 +50,9 @@ sections:
       - key: Create
         arg: Create
         res: Entry
+      - key: GetOne
+        arg: Exact
+        res: Entry
       - key: Get
         arg: Get
         res: SetRes<Entry>
@@ -56,5 +60,5 @@ sections:
         arg: Update
         res: Entry
       - key: Delete
-        arg: Delete
+        arg: Exact
         res: Nothing

@@ -16,9 +16,10 @@ internal static class EntryEps
         new List<IEp>()
         {
             Ep<Create, Entry>.DbTx<DiaryDb>(EntryRpcs.Create, Create),
+            Ep<Exact, Entry>.DbTx<DiaryDb>(EntryRpcs.GetOne, GetOne),
             Ep<Get, SetRes<Entry>>.DbTx<DiaryDb>(EntryRpcs.Get, Get),
             Ep<Update, Entry>.DbTx<DiaryDb>(EntryRpcs.Update, Update),
-            Ep<Delete, Nothing>.DbTx<DiaryDb>(EntryRpcs.Delete, Delete),
+            Ep<Exact, Nothing>.DbTx<DiaryDb>(EntryRpcs.Delete, Delete),
         };
 
     private static async Task<Entry> Create(IRpcCtx ctx, DiaryDb db, ISession ses, Create req)
@@ -38,6 +39,16 @@ internal static class EntryEps
         return entry.ToApi();
     }
 
+    private static async Task<Entry> GetOne(IRpcCtx ctx, DiaryDb db, ISession ses, Exact req)
+    {
+        var res = await db.Entries.SingleOrDefaultAsync(
+            x => x.User == ses.Id && x.Id == req.Id,
+            ctx.Ctkn
+        );
+        ctx.NotFoundIf(res == null);
+        return res.NotNull().ToApi();
+    }
+
     private static async Task<SetRes<Entry>> Get(IRpcCtx ctx, DiaryDb db, ISession ses, Get req)
     {
         var qry = db.Entries.Where(x => x.User == ses.Id);
@@ -51,26 +62,23 @@ internal static class EntryEps
         }
         if (req.After != null)
         {
-            var after = await db.Entries.SingleOrDefaultAsync(
-                x => x.User == ses.Id && x.Id == req.After,
-                ctx.Ctkn
-            );
-            ctx.NotFoundIf(after == null, model: new { Name = "After" });
-            after.NotNull();
             qry = req.Asc switch
             {
-                true => qry.Where(x => x.CreatedOn > after.CreatedOn),
-                false => qry.Where(x => x.CreatedOn < after.CreatedOn),
+                true => qry.Where(x => string.Compare(x.Id, req.After) == 1),
+                false => qry.Where(x => string.Compare(x.Id, req.After) == -1),
             };
         }
         qry = req.Asc switch
         {
-            true => qry.OrderBy(x => x.CreatedOn),
-            false => qry.OrderByDescending(x => x.CreatedOn),
+            true => qry.OrderBy(x => x.Id),
+            false => qry.OrderByDescending(x => x.Id),
         };
         qry = qry.Take(101);
-        var res = await qry.ToListAsync(ctx.Ctkn);
-        return SetRes<Entry>.FromLimit(res.Select(x => x.ToApi()).ToList(), 101);
+        // when selecting a list of entries don't select the body, we only get the
+        // body when we're getting the specific entry for reading/updating
+        var res = await qry.Select(x => new Entry(x.User, x.Id, x.CreatedOn, x.Title, ""))
+            .ToListAsync(ctx.Ctkn);
+        return SetRes<Entry>.FromLimit(res, 101);
     }
 
     private static async Task<Entry> Update(IRpcCtx ctx, DiaryDb db, ISession ses, Update req)
@@ -89,7 +97,7 @@ internal static class EntryEps
         return entry.ToApi();
     }
 
-    private static async Task<Nothing> Delete(IRpcCtx ctx, DiaryDb db, ISession ses, Delete req)
+    private static async Task<Nothing> Delete(IRpcCtx ctx, DiaryDb db, ISession ses, Exact req)
     {
         await db
             .Entries.Where(x => x.User == ses.Id && x.Id == req.Id)

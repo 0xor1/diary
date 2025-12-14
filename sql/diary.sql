@@ -77,8 +77,8 @@ CREATE TABLE Entries (
     CreatedOn DATETIME(3) NOT NULL,
     Title VARCHAR(250) NOT NULL,
     Body TEXT NOT NULL,
-    PRIMARY KEY (User, CreatedOn),
-    UNIQUE INDEX (User, Id)
+    PRIMARY KEY (User, Id),
+    UNIQUE INDEX (User, CreatedOn)
 );
 
 DROP USER IF EXISTS 'Diary'@'%';

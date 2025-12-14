@@ -14,9 +14,10 @@ namespace Diary.Api.Entry;
 public interface IEntryApi
 {
     public Task<Entry> Create(Create arg, CancellationToken ctkn = default);
+    public Task<Entry> GetOne(Exact arg, CancellationToken ctkn = default);
     public Task<SetRes<Entry>> Get(Get arg, CancellationToken ctkn = default);
     public Task<Entry> Update(Update arg, CancellationToken ctkn = default);
-    public Task Delete(Delete arg, CancellationToken ctkn = default);
+    public Task Delete(Exact arg, CancellationToken ctkn = default);
     
 }
 
@@ -32,13 +33,16 @@ public class EntryApi : IEntryApi
     public Task<Entry> Create(Create arg, CancellationToken ctkn = default) =>
         _client.Do(EntryRpcs.Create, arg, ctkn);
     
+    public Task<Entry> GetOne(Exact arg, CancellationToken ctkn = default) =>
+        _client.Do(EntryRpcs.GetOne, arg, ctkn);
+    
     public Task<SetRes<Entry>> Get(Get arg, CancellationToken ctkn = default) =>
         _client.Do(EntryRpcs.Get, arg, ctkn);
     
     public Task<Entry> Update(Update arg, CancellationToken ctkn = default) =>
         _client.Do(EntryRpcs.Update, arg, ctkn);
     
-    public Task Delete(Delete arg, CancellationToken ctkn = default) =>
+    public Task Delete(Exact arg, CancellationToken ctkn = default) =>
         _client.Do(EntryRpcs.Delete, arg, ctkn);
     
     
@@ -47,9 +51,10 @@ public class EntryApi : IEntryApi
 public static class EntryRpcs
 {
     public static readonly Rpc<Create, Entry> Create = new("/entry/create");
+    public static readonly Rpc<Exact, Entry> GetOne = new("/entry/getOne");
     public static readonly Rpc<Get, SetRes<Entry>> Get = new("/entry/get");
     public static readonly Rpc<Update, Entry> Update = new("/entry/update");
-    public static readonly Rpc<Delete, Nothing> Delete = new("/entry/delete");
+    public static readonly Rpc<Exact, Nothing> Delete = new("/entry/delete");
     
 }
 
@@ -63,7 +68,7 @@ public record Entry
         string id,
         DateTime createdOn,
         string title,
-        string body
+        string body = ""
         
     )
     {
@@ -84,7 +89,7 @@ public record Entry
     [Key(3)]
     public string Title { get; set; }
     [Key(4)]
-    public string Body { get; set; }
+    public string Body { get; set; } = "";
     
 }
 
@@ -141,9 +146,9 @@ public record Update
 
 
 [MessagePackObject]
-public record Delete
+public record Exact
 {
-    public Delete(
+    public Exact(
         string id
         
     )

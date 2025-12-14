@@ -15,7 +15,7 @@ public class DiaryDb : DbContext, IAuthDb
     public DbSet<Entry> Entries { get; set; } = null!;
 }
 
-[PrimaryKey(nameof(User), nameof(CreatedOn))]
+[PrimaryKey(nameof(User), nameof(Id))]
 public class Entry
 {
     public required string User { get; set; }
